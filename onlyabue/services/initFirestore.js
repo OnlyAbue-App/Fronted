@@ -55,16 +55,16 @@ const initializeCollections = async () => {
     });
 
     
-  await setDoc(doc(collection(firestore, 'reco_medicamentos'), 'placeholder'), {
-    nombre: "Ibuprofeno",
-    descripcion: "Antiinflamatorio y analgésico",
-    dosis: "200mg",
-    forma: "tabletas",
-    cantidadTabletas: 30,
-    tipoVenta: "Venta Libre",
-    etiquetas: [], // Este array se llenará con IDs de etiquetas
-    creadoEn: new Date(),
-  });
+    await setDoc(doc(collection(firestore, 'reco_medicamentos'), 'placeholder'), {
+      nombre: "Ibuprofeno",
+      descripcion: "Antiinflamatorio y analgésico",
+      dosis: "200mg",
+      forma: "tabletas",
+      cantidadTabletas: 30,
+      tipoVenta: "Venta Libre",
+      etiquetas: [], // Este array se llenará con IDs de etiquetas
+      creadoEn: new Date(),
+    });
   
     console.log('Colecciones inicializadas exitosamente');
   } catch (error) {
