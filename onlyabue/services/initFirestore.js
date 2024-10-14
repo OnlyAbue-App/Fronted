@@ -58,7 +58,7 @@ const initializeCollections = async () => {
       forma: "",
       cantidadTabletas: '',
       tipoVenta: "",
-      etiquetas: [], // Este array se llenará con IDs de etiquetas
+      //etiquetas: [], // Este array se llenará con IDs de etiquetas
       creadoEn: new Date(),
     });
 
