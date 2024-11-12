@@ -264,13 +264,70 @@ export const eliminarEtiqueta = async (id) => {
 };
 
 //para el token 
+// export const verificarToken = async (token) => {
+//   try {
+//     const usuariosRef = collection(firestore, 'Usuarios');
+//     const q = query(usuariosRef, where('UserID', '==', token));
+//     const querySnapshot = await getDocs(q);
+
+//     return !querySnapshot.empty;
+//   } catch (error) {
+//     console.error("Error al verificar el token:", error);
+//     return false;
+//   }
+// };
+
+// para el token again
 export const verificarToken = async (token) => {
   try {
     const usuariosRef = collection(firestore, 'Usuarios');
-    const q = query(usuariosRef, where('UserID', '==', token));
-    const querySnapshot = await getDocs(q);
+    const usuariosSnapshot = await getDocs(usuariosRef);
 
-    return !querySnapshot.empty;
+    let tokenEncontrado = false;
+
+    usuariosSnapshot.forEach((doc) => {
+      const data = doc.data();
+      const tokenArray = data.Token || [];
+
+      tokenArray.forEach((tokenObj) => {
+        if (tokenObj.token === token) {
+          tokenEncontrado = true;
+        }
+      });
+    });
+
+//usando el pseudo id
+const firestore = getFirestore();
+
+async function verificarTokenYObtenerID(token) {
+  const usuariosRef = collection(firestore, 'usuarios');
+  const q = query(usuariosRef, where("Token", "==", token));
+
+  const querySnapshot = await getDocs(q);
+  if (!querySnapshot.empty) {
+    const usuario = querySnapshot.docs[0];
+    const userID = usuario.id; 
+    console.log("Token encontrado. ID del usuario:", userID);
+    return { existe: true, userID };
+  } else {
+    console.log("Token no encontrado.");
+    return { existe: false };
+  }
+}
+
+verificarTokenYObtenerID("")
+  .then(result => {
+    if (result.existe) {
+      // Redirige al usuario al Home
+    } else {
+      // Redirige al formulario de registro
+    }
+  })
+  .catch(error => {
+    console.error("Error al verificar el token:", error);
+  });
+
+    return tokenEncontrado;
   } catch (error) {
     console.error("Error al verificar el token:", error);
     return false;
