@@ -439,6 +439,19 @@ const recordatorios = calcularRecordatorioCita(fechaCita);
 console.log("Recordatorio 1 día antes:", recordatorios.unDiaAntes);
 console.log("Recordatorio 2 horas antes:", recordatorios.dosHorasAntes);
 
+//intervalos recordatorios
+const calcularSiguienteRecordatorio = (horaInicio, intervalo, posponer = 0) => {
+  let siguienteHora = new Date(horaInicio.getTime() + intervalo * 60 * 60 * 1000);
+  siguienteHora = new Date(siguienteHora.getTime() + posponer * 60 * 1000);
+  
+  return siguienteHora;
+};
+
+// Usandolo
+const horaInicio = new Date('2023-10-31T16:00:00');
+const intervalo = 6; 
+console.log(calcularSiguienteRecordatorio(horaInicio, intervalo)); 
+console.log(calcularSiguienteRecordatorio(horaInicio, intervalo, 5));
 
 
 
