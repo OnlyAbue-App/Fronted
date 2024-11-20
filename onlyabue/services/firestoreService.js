@@ -453,7 +453,39 @@ const intervalo = 6;
 console.log(calcularSiguienteRecordatorio(horaInicio, intervalo)); 
 console.log(calcularSiguienteRecordatorio(horaInicio, intervalo, 5));
 
+//funcion de etiquetas para medicamentos
+  const buscarMedicamentosSimilares = async (etiquetasObjetivo) => {
+  const db = getFirestore();
+  const medicamentosRef = collection(db, "medicamentos");
+  const medicamentosSnapshot = await getDocs(medicamentosRef);
 
+  const medicamentosSimilares = [];
+
+  medicamentosSnapshot.forEach((doc) => {
+    const data = doc.data();
+    const etiquetasMedicamento = data.etiquetas || [];
+
+    const etiquetasComunes = etiquetasObjetivo.filter((etiqueta) =>
+      etiquetasMedicamento.includes(etiqueta)
+    );
+
+    if (etiquetasComunes.length > 0) {
+      medicamentosSimilares.push({
+        id: doc.id,
+        ...data,
+        etiquetasComunes,
+      });
+    }
+  });
+
+  return medicamentosSimilares;
+};
+
+// Usanding :)
+const etiquetasEjemplo = ["fiebre", "analgésico"];
+buscarMedicamentosSimilares(etiquetasEjemplo).then((similares) => {
+  console.log("Medicamentos similares:", similares);
+});
 
 
 
