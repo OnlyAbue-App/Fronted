@@ -439,19 +439,20 @@ const recordatorios = calcularRecordatorioCita(fechaCita);
 console.log("Recordatorio 1 día antes:", recordatorios.unDiaAntes);
 console.log("Recordatorio 2 horas antes:", recordatorios.dosHorasAntes);
 
-//intervalos recordatorios
-const calcularSiguienteRecordatorio = (horaInicio, intervalo, posponer = 0) => {
-  let siguienteHora = new Date(horaInicio.getTime() + intervalo * 60 * 60 * 1000);
-  siguienteHora = new Date(siguienteHora.getTime() + posponer * 60 * 1000);
+// //intervalos recordatorios
+// const calcularSiguienteRecordatorio = (horaInicio, intervalo, posponer = 0) => {
+//   let siguienteHora = new Date(horaInicio.getTime() + intervalo * 60 * 60 * 1000);
+//   siguienteHora = new Date(siguienteHora.getTime() + posponer * 60 * 1000);
   
-  return siguienteHora;
-};
+//   return siguienteHora;
+// };
 
-// Usandolo
-const horaInicio = new Date('2023-10-31T16:00:00');
-const intervalo = 6; 
-console.log(calcularSiguienteRecordatorio(horaInicio, intervalo)); 
-console.log(calcularSiguienteRecordatorio(horaInicio, intervalo, 5));
+// // Usandolo
+// const horaInicio = new Date('2023-10-31T16:00:00');
+// const intervalo = 6; 
+// console.log(calcularSiguienteRecordatorio(horaInicio, intervalo)); 
+// console.log(calcularSiguienteRecordatorio(horaInicio, intervalo, 5));
+
 
 //funcion de etiquetas para medicamentos
   const buscarMedicamentosSimilares = async (etiquetasObjetivo) => {
@@ -487,5 +488,30 @@ buscarMedicamentosSimilares(etiquetasEjemplo).then((similares) => {
   console.log("Medicamentos similares:", similares);
 });
 
+//funcion para comparar medicamentos similares
+async function obtenerMedicamentosSimilares(medicamentoActual) {
+  try {
+    const etiquetasActuales = medicamentoActual.etiquetas;
+    const medicamentosRef = firestore.collection('medicamentos');    
+    const snapshot = await medicamentosRef.get();
+    const medicamentosSimilares = [];
 
+    snapshot.forEach((doc) => {
+      const medicamento = doc.data();
+      const etiquetasMedicamento = medicamento.etiquetas;
+      const etiquetasComunes = etiquetasActuales.filter((etiqueta) =>
+        etiquetasMedicamento.includes(etiqueta)
+      );
 
+      if (etiquetasComunes.length > 0) {
+        medicamentosSimilares.push(medicamento);
+      }
+    });
+
+    return medicamentosSimilares;
+
+  } catch (error) {
+    console.error("Error obteniendo medicamentos similares:", error);
+    return [];
+  }
+}
