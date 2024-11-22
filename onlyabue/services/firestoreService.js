@@ -334,16 +334,27 @@ export const registrarUsuario = async ({
   }
 };
 
-
-//funciones para citas medicas crear, buscar, eliminar actualizar
-export const crearCitaMedica = async (cita) => {
+//Citas medicas
+export const crearCitaMedica = async (usuarioId, cita) => {
   try {
-    const docRef = await addDoc(collection(firestore, "citas_medicas"), cita);
-    console.log("Cita creada exitosamente. ID:", docRef.id);
+    if (!usuarioId) {
+      throw new Error("Se requiere un usuarioId para crear la cita médica.");
+    }
+    const usuarioRef = doc(collection(firestore, "usuarios"), usuarioId);
+    const citasRef = collection(usuarioRef, "citas_medicas");
+
+    const docRef = await addDoc(citasRef, {
+      ...cita,
+      creadoEn: new Date(),
+    });
+
+    console.log("Cita médica creada exitosamente. ID:", docRef.id);
   } catch (error) {
-    console.error("Error al crear la cita:", error);
+    console.error("Error al crear la cita médica:", error.message, error.stack);
+    throw error;
   }
 };
+
 
 export const leerCitaMedica = async (id) => {
   const docRef = doc(firestore, "citas_medicas", id);
