@@ -7,9 +7,8 @@ import { Pressable } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { useRouter } from 'expo-router';
-import * as ImagePicker from 'expo-image-picker';
 import styles from '../Styles/GlobalStyles'
-
+import CustomImagePicker from './ImagePicker';
 
 export const RegistroUsuario= ({Token}) => {
   let token = Token;
@@ -23,7 +22,7 @@ export const RegistroUsuario= ({Token}) => {
   const [isAgeValid, setIsAgeValid] = useState(false);
   const [Sex, setSex] = useState("");
   const [isFormValid, setIsFormValid] = useState(false);
-  const [errorImage, setErrorImagen]=useState('');
+  const [errorImage, setErrorImage]=useState('');
   const [SelectedImagen,setSelectedImagen]=useState(null);
   const router = useRouter();
   
@@ -84,7 +83,8 @@ export const RegistroUsuario= ({Token}) => {
     setTouched({ ...touched, age: true });
   };
 
-  const handleButtonNext = () => {
+  const handleButtonNext = async () => {
+    const profileImage = await uploadImage(SelectedImagen);
     const user = {
       token,
       name,
@@ -92,35 +92,59 @@ export const RegistroUsuario= ({Token}) => {
       surNameMat,
       age,
       Sex,
-      SelectedImagen
+      profileImage
     };
     router.push({
       pathname: '/RegisterUserExtra',  // Asegúrate de que la ruta exista
       params: { user: JSON.stringify(user) }  // Envía los datos como string JSON
     });
   };
+  async function uploadImage(uri) {
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    const storageRef = ref(storage, "UserPicture/" + new Date().getTime());
+    const uploadTask = uploadBytesResumable(storageRef, blob);
+
+    return new Promise((resolve, reject) => {
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log("Progreso: " + progress + "% terminado.");
+        },
+        (error) => {
+          console.error("Error durante la subida: ", error);
+          reject(error);
+        },
+        async () => {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          resolve(downloadURL);
+        }
+      );
+    });
+  }
   
-  let openImagePickerAsync = async()=>{
-    let permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync()
-    if(permissionResult.granted===false){
-      alert('Los permisos a galeria de imagenes son requeridos para continuar');
-      return;
-      }
-      const PickResult = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes:ImagePicker.MediaTypeOptions.Images,
-        allowsEditing:true,
-        aspect:[4,3],
-        quality:1,
-      });     
+  // let openImagePickerAsync = async()=>{
+  //   let permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync()
+  //   if(permissionResult.granted===false){
+  //     alert('Los permisos a galeria de imagenes son requeridos para continuar');
+  //     return;
+  //     }
+  //     const PickResult = await ImagePicker.launchImageLibraryAsync({
+  //       mediaTypes:ImagePicker.MediaTypeOptions.Images,
+  //       allowsEditing:true,
+  //       aspect:[4,3],
+  //       quality:1,
+  //     });     
       
-  if(PickResult.canceled===true){
-    setErrorImage('Seleccione una imagen')
-    return;
-  }
-  const uri = PickResult.assets?.[0]?.uri;
-     setSelectedImagen(uri);
-     setErrorImagen('');
-  }
+  // if(PickResult.canceled===true){
+  //   setErrorImage('Seleccione una imagen')
+  //   return;
+  // }
+  // const uri = PickResult.assets?.[0]?.uri;
+  //    setSelectedImagen(uri);
+  //    setErrorImagen('');
+  // }
 
   
 
@@ -134,15 +158,12 @@ export const RegistroUsuario= ({Token}) => {
               <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
                 <View style={styles.registerContainer}>
                   <Text style={styles.Titulo}>Elija una foto suya</Text>
-                <TouchableOpacity onPress={openImagePickerAsync}>
-                  <Image    
-                    source={{
-                      uri : SelectedImagen !== null
-                  ?  SelectedImagen  // URI dinámica
-                  : 'https://via.placeholder.com/100'// Placeholder local
-                  }}style={styles.iconRegistroUsuario} />
-                </TouchableOpacity>
-                {errorImage ? <Text style={styles.error}>{errorImage}</Text> : null}
+                  <CustomImagePicker
+                    selectedImage={SelectedImagen}
+                    setSelectedImage={setSelectedImagen}
+                    errorImage={errorImage}
+                    setErrorImage={setErrorImage}
+                  />
                   <Text style={styles.Titulo}>Ingrese sus datos basicos</Text>
                   <View style={styles.formContainer}>
                     <VStack>
