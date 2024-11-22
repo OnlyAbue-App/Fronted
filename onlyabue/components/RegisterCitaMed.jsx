@@ -6,12 +6,13 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import styles from "../Styles/GlobalStyles";
+import { crearCitaMedica } from '../services/firestoreService';
+import { firestore, storage } from '../services/firebaseConfig';
+import { collection, addDoc, doc } from 'firebase/firestore';
 
 const { width, height } = Dimensions.get('window');
-const router = useRouter();
 export function RegistroCitaMedica(){
-
-  
+  const router = useRouter();
   const [NombreMedico,setNombreMedico] = useState('');
   const [ApellidoMedico, setApellidoMedico] = useState('')
   const [DescipcionCita, setDescripcionCita]= useState('')
@@ -19,25 +20,56 @@ export function RegistroCitaMedica(){
   const [Lugar, setLugar] = useState('')
   const [Recordatorio,setRecordatorio] = useState('')
   const [selectedTime, setSelectedTime] = useState(null);
-  const [selectedDate,SetselectedDate]= useState(null)
+  const [selectedDate,setSelectedDate]= useState(null)
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showDatePicker, setShowDatePicker] =useState(false)
-  const handleSubmit = ()=>{
-      if(!errorNombreMed &&
+  const handleSubmit = async() => {
+      if (!errorNombreMed &&
           !errorApellidoMed &&
           !errorLugar &&
           !errorHora &&
           !errorFecha &&
-          !errorRecordatorio &&
+          // !Detalle &&
+          // !errorRecordatorio &&
 
           NombreMedico &&
           ApellidoMedico &&
           Lugar &&
           selectedDate &&
-          selectedTime &&
-          Recordatorio
-      ){
-        console.log( 'nombre:'+ NombreMedico +'apellido:'+ ApellidoMedico + 'lugar:'+Lugar+ 'descrip:'+DescipcionCita+'recordatorio:'+Recordatorio +'hora:'+selectedTime.toLocaleTimeString() +'fecha:'+selectedDate )
+          selectedTime
+          // Detalle
+          // Recordatorio
+      ) {
+        // console.log( 'nombre:'+ NombreMedico +'apellido:'+ ApellidoMedico + 'lugar:'+Lugar+ 'descrip:'+DescipcionCita+'recordatorio:'+Recordatorio +'hora:'+selectedTime.toLocaleTimeString() +'fecha:'+selectedDate )
+        const usuarioPruebaRef = "usuario1234";
+        const cita = {
+          nombreMedico: NombreMedico,
+          apellidoMedico: ApellidoMedico,
+          lugar: Lugar,
+          descripcion: DescipcionCita || '',
+          detalle: Detalle,
+          recordatorio: Recordatorio || "No especificado",
+          fecha: selectedDate.toISOString(),
+          hora: selectedTime.toISOString(),
+          creadoEn: new Date(),
+        };
+        console.log("Datos de la cita médica:", cita);
+        try {
+          await crearCitaMedica(usuarioPruebaRef, cita);
+          Alert.alert('Éxito', 'Cita médica creada exitosamente.');
+          setNombreMedico('');
+          setApellidoMedico('');
+          setLugar('');
+          setDescripcionCita('');
+          setDetalle('');
+          setRecordatorio('');
+          setSelectedDate(null);
+          setSelectedTime(null);
+          // router.back();
+        } catch (error) {
+          console.error("Error al crear la cita:", error);
+          Alert.alert('Error', 'No se pudo crear la cita. Intente nuevamente.');
+        }
       }else{
         if(!NombreMedico)
           setErrorNombreMed('llene este espacio')
@@ -49,8 +81,8 @@ export function RegistroCitaMedica(){
           setErrorHora('Seleccione Hora de Alarma')
         if(!selectedDate)
           setErrorFecha('Seleccione una Fecha')
-        if(!Recordatorio)
-          setErrorRecordatorio('Seleccione Recordatorio')
+        // if(!Recordatorio)
+        //   setErrorRecordatorio('Seleccione Recordatorio')
         if(!Detalle)
           setErrorDetalle('Ingrese detalles de la Cita Medica')
 
@@ -67,7 +99,7 @@ export function RegistroCitaMedica(){
   };
   const handeDateChange = (event, date)=>{
     if(date){
-      SetselectedDate(date);
+      setSelectedDate(date);
     }
     setShowDatePicker(false);
     setErrorFecha('');
@@ -117,9 +149,6 @@ const [errorDetalle, setErrorDetalle]=useState('')
     )
   
   }
-
-
-
     return(
       <Box bg="#027AA7" flex={1} p={4} position="relative" >
         <View style={styles.topSemiCircle} />
