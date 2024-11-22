@@ -15,12 +15,10 @@ import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 import CustomImagePicker from './ImagePicker';
 import { primerRecordatorio } from "./recordatorios/notificacionesService";
-const router = useRouter();
-
 
 const { width, height } = Dimensions.get('window');
- export function RegistroMedicamento(){
-  
+export function RegistroMedicamento(){
+  const router = useRouter();
   const [NombreComercial,setNombreComercial] = useState('');
   const [NombreGenerico,setNombreGenerico] = useState('');
   const [Dosis,setDosis] = useState('');
@@ -129,8 +127,8 @@ const { width, height } = Dimensions.get('window');
         intervalo: Intervalo,
         horaInicial: selectedTime
       };
-      if (selectedTime != '') {
-        await primerRecordatorio(recordatorioData);
+      if (selectedTime !== null) {
+        // await primerRecordatorio(recordatorioData);
       }
   
       alert('Medicamento registrado correctamente');
@@ -569,6 +567,5 @@ const { width, height } = Dimensions.get('window');
     
 
     
-    );
- }
+);}
  

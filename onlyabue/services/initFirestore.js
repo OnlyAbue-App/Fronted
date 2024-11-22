@@ -2,56 +2,57 @@ import { firestore } from './firebaseConfig';
 import { collection, doc, setDoc } from 'firebase/firestore';
 
 const initializeCollections = async () => {
-    console.log('Initializing collections...');
+  console.log('Initializing collections...');
   try {
-    await setDoc(doc(collection(firestore, 'usuarios'), 'placeholder'), {
-      userId:"",
-      nombre: "",
-      email: "",
-      fechaNacimiento: "",
-      genero: "",
-      creadoEn: new Date(),
-    });
-    
-    await setDoc(doc(collection(firestore, 'medicamentos'), 'placeholder'), {
-      nombre: "",
-      dosis: "",
-      dias: [],  
-      horas: [],
-      imagen: "",
-      color: "",
+    const usuarioRef = doc(collection(firestore, 'usuarios'), 'placeholder');
+    await setDoc(usuarioRef, {
+        nombre: "usuario1234",
+        email: "usuario1234@correo.com",
+        fechaNacimiento: "2000-01-01",
+        genero: "masculino",
+        creadoEn: new Date(),
     });
 
-    await setDoc(doc(collection(firestore, 'recordatorios'), 'placeholder'), {
-      tipo: ["medicamento", "cita medica"],
-      fecha: "",
-      hora: "",
-      repeticion: "",
-      usuarioId: "",
-      medicamentoId: "",
-      creadoEn: new Date(),
+    const medicamentoRef = doc(collection(usuarioRef, 'medicamentos'), 'placeholder');
+    await setDoc(medicamentoRef, {
+        nombre: "",
+        dosis: "",
+        intervalo: "",
+        horaInicial: "",  
+        imagen: "",
+        color: "",
+        creadoEn: new Date(),
     });
 
-    await setDoc(doc(collection(firestore, 'historial_medicamentos'), 'placeholder'), {
-      usuarioId: "",
-      medicamentoId: "",
-      fecha: "",
-      dosisTomada: "",
-      observaciones: "",
+    const recordatorioRef = doc(collection(medicamentoRef, 'recordatorios'), 'placeholder');
+    await setDoc(recordatorioRef, {
+        tipo: "medicamento",
+        proximaToma: "",
+        estado: "pendiente",
+        creadoEn: new Date(),
     });
 
-      const citaRef = doc(collection(usuarioRef, 'citas_medicas'), 'placeholder');
-      await setDoc(citaRef, {
-          usuarioId: "",
-          fecha: "",
-          hora: "",
-          doctor: "",
-          especialidad: "",
-          lugar: "",
-          creadoEn: new Date(),
-      });
+    const historialRef = doc(collection(usuarioRef, 'historial_medicamentos'), 'placeholder');
+    await setDoc(historialRef, {
+        usuarioId: "",
+        medicamentoId: "",
+        fecha: "",
+        dosisTomada: "",
+        observaciones: "",
+    });
 
-      const recomendacionRef = doc(collection(usuarioRef, 'reco_medicamentos'), 'placeholder');
+    const citaRef = doc(collection(usuarioRef, 'citas_medicas'), 'placeholder');
+    await setDoc(citaRef, {
+        usuarioId: "",
+        fecha: "",
+        hora: "",
+        doctor: "",
+        especialidad: "",
+        lugar: "",
+        creadoEn: new Date(),
+    });
+
+    const recomendacionRef = doc(collection(usuarioRef, 'reco_medicamentos'), 'placeholder');
       await setDoc(recomendacionRef, {
           medicamentoId: "",
           usuarioId: "",
@@ -70,10 +71,12 @@ const initializeCollections = async () => {
       descripcion: "Medicamento para aliviar el dolor",
       creadoEn: new Date(),
       });
+
     console.log('Colecciones inicializadas exitosamente');
   } catch (error) {
     console.error('Error al inicializar las colecciones: ', error);
   }
+  
 
 };
   
