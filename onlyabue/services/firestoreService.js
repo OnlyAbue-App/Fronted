@@ -515,3 +515,16 @@ async function obtenerMedicamentosSimilares(medicamentoActual) {
     return [];
   }
 }
+
+//editar medicamentos
+const editarMedicamento = async (medicamentoId, datosActualizados) => {
+  try {
+    const db = getFirestore(); 
+    const medicamentoRef = doc(db, "medicamentos", medicamentoId); 
+
+    await updateDoc(medicamentoRef, datosActualizados);
+    console.log("¡Medicamento actualizado correctamente!");
+  } catch (error) {
+    console.error("Error al actualizar el medicamento:", error);
+  }
+};
