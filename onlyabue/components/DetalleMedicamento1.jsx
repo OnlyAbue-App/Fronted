@@ -5,7 +5,7 @@ const DetalleMedicamento1 = () => {
   return (
     <ScrollView style={styles.container}>
       <Image
-        source={{ uri: 'https://via.placeholder.com/150' }} // Cambia esta URL por la imagen del medicamento
+        source={{ uri: 'https://via.placeholder.com/150' }}
         style={styles.image}
       />
       <Text style={styles.title}>Paracetamol</Text>
