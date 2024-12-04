@@ -4,6 +4,9 @@ import { View,  Image, StyleSheet,StatusBar, TouchableOpacity, ScrollView } from
 import RecomendacionMedicamiento from './RecomendacionMedicamentos';
 import { Navigator,useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { getDoc, doc } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
+
 
 export const ProductScreen = ({Med}) => {
   const [Titulo,setTitulo]=useState('Medicamentos');
@@ -175,4 +178,31 @@ const styles = StyleSheet.create({
   }
 });
 
+//conexion con el backend 
+useEffect(() => {
+  const fetchMedicamento = async () => {
+    try {
+      const medicamentoRef = doc(db, 'medicamentos', medicamentoId); // Cambia 'medicamentos' por tu colección
+      const docSnap = await getDoc(medicamentoRef);
+
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setNombreCom(data.nombre_comercial);
+        setNombGen(data.nombre_generico);
+        setCantidad(data.cantidad || 'N/A');
+        setDescripcion(data.descripcion);
+        setGramaje(data.gramaje || 'N/A');
+        setImageUrl(data.imagen || 'https://via.placeholder.com/100');
+      } else {
+        console.log('No se encontró el medicamento');
+      }
+    } catch (error) {
+      console.error('Error al obtener el medicamento:', error);
+    }
+  };
+
+  fetchMedicamento();
+}, [medicamentoId]);
+
+const { medicamentoId } = route.params;
 
