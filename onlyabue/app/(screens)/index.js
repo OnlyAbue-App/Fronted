@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
+import { Button } from 'native-base';
 import { useRouter, Redirect } from 'expo-router';
 import { useDispatch } from 'react-redux';
 import * as Google from 'expo-auth-session/providers/google';
@@ -11,6 +12,10 @@ import { setUser } from '../../store/slices/userSlice';
 import * as WebBrowser from 'expo-web-browser';
 import { verificarToken } from '../../services/firestoreService';
 import * as AuthSession from 'expo-auth-session';
+import CryptoJS from 'crypto-js'
+import { saveToken,saveName } from '../../store/slices/userSlice';
+import { obtenerDocumentoPorToken } from '../../services/firestoreService';
+
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -24,21 +29,17 @@ export default function Index() {
     redirectUri: AuthSession.makeRedirectUri({
       scheme: "com.onlyabue.app",
     }),
+    scopes: ["https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile"]
   });
 
   useEffect(() => {
     const checkStoredToken = async () => {
       try {
-        const storedToken = await AsyncStorage.getItem("@token");
+        const storedToken = await AsyncStorage.getItem("authToken");
         if (storedToken) {
-          const tokenExists = await verificarToken(storedToken);
-          if (tokenExists) {
-            setIsAuthenticated(true);
-            router.push('/(tabs)/Home');
-          } else {
-            setIsAuthenticated(false);
-          }
-        } else {
+          setIsAuthenticated(true);
+        } 
+        else {
           setIsAuthenticated(false);
         }
       } catch (error) {
@@ -61,15 +62,31 @@ export default function Index() {
     if (!token) return;
     try {
       setIsLoading(true);
-      const tokenExists = await verificarToken(token);
+  
+      // Solicita el perfil del usuario utilizando el token de acceso
+      const userInfoResponse = await fetch('https://www.googleapis.com/userinfo/v2/me', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const userInfo = await userInfoResponse.json();
+  
+      // Obtén el correo electrónico del usuario
+      const userEmail = userInfo.email;
+      const hashedEmail = CryptoJS.SHA256(userEmail).toString(CryptoJS.enc.Hex);
+
+      // Verifica si el token ya existe en la base de datos
+      const tokenExists = await verificarToken(hashedEmail);
+  
       if (tokenExists) {
-        dispatch(setUser({ token }));
+        // Almacena el token y establece el estado de autenticación en Redux
+        const userDocumentId = await obtenerDocumentoPorToken(hashedEmail);
+        dispatch(saveName(userDocumentId));
+        dispatch(saveToken(hashedEmail));
         setIsAuthenticated(true);
         router.push('/(tabs)/Home');
       } else {
         router.push({
           pathname: '/RegisterUser', 
-          params: { Token: token }  
+          params: { Token: hashedEmail }  
         });
       }
     } catch (e) {
@@ -78,14 +95,15 @@ export default function Index() {
       setIsLoading(false);
     }
   };
-
+  
   if (isLoading) {
     return <LoadingScreen />;
   }
 
   return (
     <View flex={1}>
-      {isAuthenticated ? <Redirect href="/(tabs)/Home" /> : <AuthScreen onSignIn={() => promptAsync()} />}
+      {/*isAuthenticated ? <Redirect href="/(tabs)/Home" /> : <AuthScreen onSignIn={() => promptAsync()} />*/}
+      <Redirect href="/(tabs)/Home" />
     </View>
   );
 }

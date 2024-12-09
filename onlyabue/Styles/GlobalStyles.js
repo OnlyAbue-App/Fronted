@@ -23,6 +23,13 @@ const styles = StyleSheet.create({
       paddingVertical: 20,
       paddingTop:10,
     },
+    scrollHorizontalContainer: {
+      flexGrow: 1, 
+      justifyContent: 'flex-start',
+      alignItems: 'center',      
+      paddingVertical: 20,
+      paddingTop:10,
+    },
     registerContainer: {
       // backgroundColor: '#BBDEFB',
       width: width * 0.9,
@@ -54,6 +61,16 @@ const styles = StyleSheet.create({
       marginrigth:5,
       padding: 10,
       backgroundColor:'white',
+      borderRadius:15,
+      width:width*0.9,
+    },
+    CardsContainerPlaceHolder:{
+      backgroundColor: "#9b9b9b" ,
+      marginTop:10,
+      marginBottom:10,
+      marginLeft:5,
+      marginrigth:5,
+      padding: 10,
       borderRadius:15,
       width:width*0.9,
     },
@@ -117,6 +134,14 @@ const styles = StyleSheet.create({
       alignItems:'flex-end',
       margin:8,
   },
+  imgHistorialCard:{
+    width:140,
+    height:150,
+    borderRadius:10,
+  },
+  imgHistorialContainer:{
+    marginRight:10,
+  },
     CitaText:{
       fontSize:24,
       fontWeight:'bold',
@@ -127,6 +152,7 @@ const styles = StyleSheet.create({
       fontSize:18,
       
     },
+    
 //======================== Botones ===============================
     BackIconButton:{
       width: 50, 
@@ -202,6 +228,15 @@ const styles = StyleSheet.create({
       backgroundColor: 'white',  // Color del semicírculo inferior
       bottom: -250,  // Posición ajustada hacia abajo
       right: 0,  // Ajuste para la posición derecha
+    },
+    AlarmCircle:{
+      
+    },
+    row: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "flex-start",
+      marginTop: 6,
     },
     
 

@@ -11,7 +11,7 @@ import styles from '../Styles/GlobalStyles'
 import CustomImagePicker from './ImagePicker';
 
 export const RegistroUsuario= ({Token}) => {
-  let token = Token;
+  const [token,setToken] = useState({Token});
   const [name, setName] = useState("");
   const [isNameValid, setIsNameValid] = useState(false);
   const [surNamePat, setsurNamePat] = useState("");
@@ -86,7 +86,7 @@ export const RegistroUsuario= ({Token}) => {
   const handleButtonNext = async () => {
     const profileImage = await uploadImage(SelectedImagen);
     const user = {
-      token,
+      ...token,
       name,
       surNamePat,
       surNameMat,
@@ -98,6 +98,7 @@ export const RegistroUsuario= ({Token}) => {
       pathname: '/RegisterUserExtra',  // Asegúrate de que la ruta exista
       params: { user: JSON.stringify(user) }  // Envía los datos como string JSON
     });
+
   };
   async function uploadImage(uri) {
     const response = await fetch(uri);
@@ -158,12 +159,21 @@ export const RegistroUsuario= ({Token}) => {
               <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
                 <View style={styles.registerContainer}>
                   <Text style={styles.Titulo}>Elija una foto suya</Text>
-                  <CustomImagePicker
-                    selectedImage={SelectedImagen}
-                    setSelectedImage={setSelectedImagen}
-                    errorImage={errorImage}
-                    setErrorImage={setErrorImage}
-                  />
+                <CustomImagePicker
+                  selectedImage={SelectedImagen}
+                  setSelectedImage={setSelectedImagen}
+                  errorImage={errorImage}
+                  setErrorImage={setErrorImage}
+                />
+                {/* <TouchableOpacity onPress={openImagePickerAsync}>
+                  <Image    
+                    source={{
+                      uri : SelectedImagen !== null
+                  ?  SelectedImagen  // URI dinámica
+                  : 'https://via.placeholder.com/100'// Placeholder local
+                  }}style={styles.iconRegistroUsuario} />
+                </TouchableOpacity>
+                {errorImage ? <Text style={styles.error}>{errorImage}</Text> : null} */}
                   <Text style={styles.Titulo}>Ingrese sus datos basicos</Text>
                   <View style={styles.formContainer}>
                     <VStack>

@@ -1,5 +1,5 @@
 import { firestore } from './firebaseConfig';
-import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc, query, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, updateDoc, doc,setDoc, deleteDoc, query, where, getDoc } from 'firebase/firestore';
 import * as ImagePicker from 'expo-image-picker';
 
 // Para medicamentos
@@ -24,14 +24,33 @@ export const obtenerMedicamentos = async () => {
 
 export const obtenerMedicamentosPorUsuario = async (usuarioId) => {
   try {
-    const q = query(collection(firestore, 'medicamentos'), where('usuarioId', '==', usuarioId));
-    const medicamentosSnapshot = await getDocs(q);
-    const listaMedicamentos = medicamentosSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // Referencia al documento del usuario con el ID proporcionado
+    const usuarioDocRef = doc(firestore, 'usuarios', usuarioId);
+
+    // Verificar si el documento existe
+    const usuarioDoc = await getDoc(usuarioDocRef);
+    if (!usuarioDoc.exists()) {
+      console.error(`No se encontró un usuario con el ID: ${usuarioId}`);
+      return [];
+    }
+
+    // Acceder a la subcolección "medicamentos" del usuario
+    const medicamentosCollectionRef = collection(usuarioDocRef, 'medicamentos');
+    const medicamentosSnapshot = await getDocs(medicamentosCollectionRef);
+
+    // Mapear los documentos de la subcolección a un array
+    const listaMedicamentos = medicamentosSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
     return listaMedicamentos;
   } catch (error) {
     console.error('Error al obtener medicamentos:', error);
+    return [];
   }
 };
+
 
 export const actualizarMedicamento = async (medicamentoId, nuevosDatos) => {
   try {
@@ -126,15 +145,27 @@ export const eliminarRecordatorio = async (recordatorioId) => {
     }
 };
 
-/*export async function crearUsuario(user) {
+export async function crearUsuario(user) {
   try {
-    await setDoc(doc(collection(firestore, 'usuarios')), user);
-    console.log('Usuario creado con éxito');
+    // Verifica si `user` es un array y accede al primer objeto si es necesario
+    if (Array.isArray(user)) {
+      user = user[0]; // Accede al primer objeto del array
+    }
+
+    // Verifica que `user` sea un objeto plano y no un array
+    if (typeof user !== 'object' || Array.isArray(user)) {
+      throw new Error("El parámetro 'user' debe ser un objeto plano.");
+    }
+
+    // Agrega el documento a la colección y recupera su referencia
+    const docRef = await addDoc(collection(firestore, 'usuarios'), user);
+    console.log(`Usuario creado con éxito. ID del documento: ${docRef.id}`);
+    return docRef.id;
   } catch (error) {
     console.error('Error creando el usuario: ', error);
+    return null; // Retorna null en caso de error
   }
-}*/
-
+}
 
 //Recomendaciones de la tabla rec_medicamentos
 export const agregarRecomendacionMedicamentos = async (recomendacionesData) => {
@@ -147,7 +178,7 @@ export const agregarRecomendacionMedicamentos = async (recomendacionesData) => {
 };
 
 //usuarios
-export async function crearUsuario(email, fechaNacimiento, genero, nombre) {
+/*export async function crearUsuario(email, fechaNacimiento, genero, nombre) {
   try {
     const nuevoUsuario = {
       email,
@@ -162,7 +193,7 @@ export async function crearUsuario(email, fechaNacimiento, genero, nombre) {
     console.error('Error creando el usuario: ', error);
   }
 }
-
+*/
 async function obtenerUsuario(id) {
   try {
     const docRef = doc(firestore, 'usuarios', id);
@@ -266,14 +297,48 @@ export const eliminarEtiqueta = async (id) => {
 //para el token 
 export const verificarToken = async (token) => {
   try {
-    const usuariosRef = collection(firestore, 'Usuarios');
-    const q = query(usuariosRef, where('UserID', '==', token));
-    const querySnapshot = await getDocs(q);
-
-    return !querySnapshot.empty;
+    // Referencia a la colección 'usuarios'
+    const usuariosRef = collection(firestore, 'usuarios');
+    const usuariosSnapshot = await getDocs(usuariosRef);
+    
+    // Búsqueda del token en cada documento de la colección
+    for (const doc of usuariosSnapshot.docs) {
+      const data = doc.data();
+      
+      // Verifica si el campo 'Token' del documento coincide con el token proporcionado
+      if (data.Token === token) {
+        return true;  // Token encontrado
+      }
+    }
+    // Si ningún documento tiene el token, devuelve false
+    return false;
   } catch (error) {
     console.error("Error al verificar el token:", error);
     return false;
+  }
+};
+
+//Para obtener el nombre del doc
+export const obtenerDocumentoPorToken = async (token) => {
+  try {
+    // Referencia a la colección 'usuarios'
+    const usuariosRef = collection(firestore, 'usuarios');
+    const usuariosSnapshot = await getDocs(usuariosRef);
+
+    // Itera sobre los documentos en la colección
+    for (const doc of usuariosSnapshot.docs) {
+      const data = doc.data();
+
+      // Verifica si el campo 'Token' coincide con el token proporcionado
+      if (data.Token === token) {
+        return doc.id; // Devuelve el ID del documento donde se encontró el token
+      }
+    }
+    // Si no se encuentra el token, devuelve null
+    return null;
+  } catch (error) {
+    console.error("Error al obtener el documento por token:", error);
+    return null;
   }
 };
 
@@ -387,6 +452,27 @@ const calcularRecordatorioCita = (fechaCita) => {
   
   return { unDiaAntes, dosHorasAntes };
 };
+
+//funcion para recuperdar datos del usuario
+
+export const getUserData = async(usuarioId) =>{
+  try{
+    const usuarioDocRef = doc(firestore, 'usuarios', usuarioId);
+    // Verificar si el documento existe
+    const usuarioDoc = await getDoc(usuarioDocRef);
+    if(usuarioDoc.exists()){
+      return usuarioDoc.data();
+    }
+    else{
+      return [];
+    }
+  }
+  catch(e){
+    console.error('error al obtener datos',e);
+    return [];
+  }
+
+}
 
 const fechaCita = new Date('2024-11-04 T15:00');
 const recordatorios = calcularRecordatorioCita(fechaCita);

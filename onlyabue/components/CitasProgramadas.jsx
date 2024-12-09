@@ -1,34 +1,34 @@
 import { View, Text,Pressable, HStack,Box } from "native-base";
 import styles from "../Styles/GlobalStyles";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link } from "expo-router";
-export function CitaCard(){
-    const [NombreMed, setNombreMed] =useState('Dr. Jose Armando rocio')
-    const [Detalle, setDetalle] = useState('Sin Detalle ')
-    const [Lugar, setLugar] = useState('Hospital del Norte')
-    const [HoraCita, setHoraCita] = useState('12:30')
-    const [Fecha, setFecha]=useState('12/11/2024')
+export function CitaCard({Cita}){
+    const [NombreMed, setNombreMed] =useState()
+    const [Detalle, setDetalle] = useState()
+    const [Lugar, setLugar] = useState()
+    const [HoraCita, setHoraCita] = useState()
+    const [Fecha, setFecha]=useState()
     return(
-            <View style={styles.CardsContainer}>
+            <View alignSelf={'center'} style={styles.CardsContainer} shadow={"6"}>
                         
                     <Link asChild href='./MedDetails'>
                         <Pressable>                        
-                            <HStack space={3} alignItems="center" padding="1">
+                            <HStack space={3} alignItems="center" padding={1}>
                                 <Box alignItems={'center'} flex={1}>
-                                    <Text fontSize="2xl" fontWeight="bold">
-                                    {NombreMed}
+                                    <Text alignSelf={'center'} fontSize="2xl" fontWeight="bold">
+                                    {Cita.NombreMed}
                                     </Text>
-                                    <Text fontSize="2xl" fontWeight="bold">
-                                    {Fecha}
+                                    <Text alignSelf={'center'} fontSize="2xl" fontWeight="bold">
+                                    {Cita.Fecha}
                                     </Text>
                                     <Text alignItems="center" fontSize="2xl" fontWeight="bold">
-                                    {HoraCita}
+                                    {Cita.HoraCita}
                                     </Text>
-                                    <Text fontSize="md" color="gray.500">
-                                    {Lugar}
+                                    <Text alignSelf={'center'} fontSize="md" color="gray.500">
+                                    {Cita.Lugar}
                                     </Text>
-                                    <Text fontSize="md" color="gray.500">
-                                    {Detalle}
+                                    <Text alignSelf={'center'} fontSize="md" color="gray.500">
+                                    {Cita.Detalle}
                                     </Text>
                                     <Box style={styles.DetallesCard}>
                                         <Text>

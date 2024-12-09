@@ -1,17 +1,19 @@
 import {  Input, ScrollView, VStack, Modal, Pressable, View, Button, Select,Box } from "native-base";
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { Dimensions,StyleSheet, Text, Alert, TouchableOpacity} from "react-native";
 import { Link,useRouter } from "expo-router";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import styles from "../Styles/GlobalStyles";
-import { crearCitaMedica } from '../services/firestoreService';
+import { getNameFromAsyncStorage } from "../services/frontServices";import { crearCitaMedica } from '../services/firestoreService';
 import { firestore, storage } from '../services/firebaseConfig';
 import { collection, addDoc, doc } from 'firebase/firestore';
+import { crearCitaMedica } from '../services/firestoreService';
 
 const { width, height } = Dimensions.get('window');
 export function RegistroCitaMedica(){
+  
   const router = useRouter();
   const [NombreMedico,setNombreMedico] = useState('');
   const [ApellidoMedico, setApellidoMedico] = useState('')
@@ -23,6 +25,16 @@ export function RegistroCitaMedica(){
   const [selectedDate,setSelectedDate]= useState(null)
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showDatePicker, setShowDatePicker] =useState(false)
+  const [user, setUser] = useState(null);
+
+useEffect(() => {
+  const fetchUser = async () => {
+    const fetchedUser = await getNameFromAsyncStorage();
+    setUser(fetchedUser);
+  };
+  fetchUser();
+}, []);
+
   const handleSubmit = async() => {
       if (!errorNombreMed &&
           !errorApellidoMed &&
@@ -140,6 +152,7 @@ const [errorDetalle, setErrorDetalle]=useState('')
     }
     setLugar(text);
   }
+  
   function htmlError(texto){
     return(
     <View flexDirection={"row"}>

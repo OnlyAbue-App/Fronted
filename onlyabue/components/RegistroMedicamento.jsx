@@ -1,7 +1,7 @@
 import React from "react";
 import { Alert, Dimensions, Text, StatusBar, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
-import { useState,useCallback } from 'react';
-import { Input, VStack, Select, Pressable, Modal, Button, FormControl, View,Box } from "native-base";
+import { useState,useCallback,useEffect } from 'react';
+import { Input, VStack, Select, Pressable, Modal, Button, FormControl, View,Box,Checkbox } from "native-base";
 import { useFocusEffect } from '@react-navigation/native';
 import { Link, useRouter } from "expo-router";
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -12,9 +12,11 @@ import ColorPicker from 'react-native-wheel-color-picker';
 import { firestore, storage } from '../services/firebaseConfig';
 import { collection, addDoc, doc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-
+import { getNameFromAsyncStorage } from "../services/frontServices";
 import CustomImagePicker from './ImagePicker';
 import { primerRecordatorio } from "./recordatorios/notificacionesService";
+
+
 
 const { width, height } = Dimensions.get('window');
 export function RegistroMedicamento(){
@@ -32,6 +34,43 @@ export function RegistroMedicamento(){
   const [selectedColor, setSelectedColor] = useState('#ffffff'); // Estado para el color seleccionado
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState('W2H5OUAzK5maXu5jcww5');
+  const [selectedDays, setSelectedDays] = useState([]); 
+
+  const daysOfWeek = [
+    { label: 'Lunes', value: 'Lunes' },
+    { label: 'Martes', value: 'Martes' },
+    { label: 'Miércoles', value: 'Miercoles' },
+    { label: 'Jueves', value: 'Jueves' },
+    { label: 'Viernes', value: 'Viernes' },
+    { label: 'Sábado', value: 'Sabado' },
+    { label: 'Domingo', value: 'Domingo' },
+  ];
+
+  const handleCheckboxChange = (day) => {
+      setSelectedDays((prevDays) => {
+      if (prevDays.includes(day)) {
+        // Si el día ya está seleccionado, lo eliminamos
+        return prevDays.filter((selectedDay) => selectedDay !== day);
+      } else {
+        // Si el día no está seleccionado, lo añadimos
+        return [...prevDays, day];
+      }
+    });
+  };
+  const aceptarFunc=()=>{
+    console.log(selectedDays);
+    setModalConfig(false) 
+  }
+
+useEffect(() => {
+  const fetchUser = async () => {
+    //const fetchedUser = await getNameFromAsyncStorage();
+    const fetchedUser = 'W2H5OUAzK5maXu5jcww5';
+    setUser(fetchedUser);
+  };
+  fetchUser();
+}, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -78,68 +117,57 @@ export function RegistroMedicamento(){
       Cantidad &&
       selectedColor
     ) {
-      console.log({
-        NombreComercial,
-        NombreGenerico,
-        Dosis,
-        Intervalo,
-        Tamanio,
-        Unidad,
-        Presentacion,
-        imagenMedUrl,
-        imagenBoxUrl,
-        Cantidad,
-        selectedColor,
-        selectedTime,
-      });
+      
+      try {
+        if (errorImageMed && errorImageBox && !selectedImageMed && !selectedImageBox) {
+          alert('Debe seleccionar una imagen');
+          return;
+        }
+        setLoading(true);
+        const usuarioPruebaRef = doc(collection(firestore, 'usuarios'), user);
+        const imageMedUrl = await uploadImage(selectedImageMed);
+        const imageBoxUrl = await uploadImage(selectedImageBox);
+        const docRef = await addDoc(collection(usuarioPruebaRef, 'medicamentos'), {
+          imagenMedUrl: imageMedUrl,
+          imagenBoxUrl: imageBoxUrl,
+          nombreComercial: NombreComercial,
+          nombreGenerico: NombreGenerico,
+          dosis: Dosis,
+          intervalo: Intervalo,
+          tamanio: Tamanio,
+          unidad: Unidad,
+          presentacion: Presentacion,
+          cantidad: Cantidad,
+          color: selectedColor,
+          hora: selectedTime,
+          creadoEn: new Date(),
+          dias: selectedDays,
+        });
+        const recordatorioData = {
+          medicamentoId: docRef.id,
+          usuarioId: usuarioPruebaRef.id,
+          intervalo: Intervalo,
+          horaInicial: selectedTime,
+          dias: selectedDays,
+        };
+        if (selectedTime != '') {
+          await primerRecordatorio(recordatorioData);
+        }
+    
+        alert('Medicamento registrado correctamente');
+        console.log("Medicamento agregado con ID: ", docRef.id);
+  
+      } catch (error) {
+        console.error("Error agregando el medicamento: ", error);
+        alert('Error al registrar el medicamento');
+      } finally {
+        setLoading(false);
+      }
     } else {
       Alert.alert('Error', 'Por favor llene todos los campos del formulario');
     }
 
-    try {
-      if (errorImageMed && errorImageBox && !selectedImageMed && !selectedImageBox) {
-        alert('Debe seleccionar una imagen');
-        return;
-      }
-      setLoading(true);
-      const usuarioPruebaRef = doc(collection(firestore, 'usuarios'), 'usuario1234');
-      const imageMedUrl = await uploadImage(selectedImageMed);
-      const imageBoxUrl = await uploadImage(selectedImageBox);
-
-      const docRef = await addDoc(collection(usuarioPruebaRef, 'medicamentos'), {
-        imagenMedUrl: imageMedUrl,
-        imagenBoxUrl: imageBoxUrl,
-        nombreComercial: NombreComercial,
-        nombreGenerico: NombreGenerico,
-        dosis: Dosis,
-        intervalo: Intervalo,
-        tamanio: Tamanio,
-        unidad: Unidad,
-        presentacion: Presentacion,
-        cantidad: Cantidad,
-        color: selectedColor,
-        hora: selectedTime,
-        creadoEn: new Date(),
-      });
-      const recordatorioData = {
-        medicamentoId: docRef.id,
-        usuarioId: usuarioPruebaRef.id,
-        intervalo: Intervalo,
-        horaInicial: selectedTime
-      };
-      if (selectedTime !== null) {
-        // await primerRecordatorio(recordatorioData);
-      }
-  
-      alert('Medicamento registrado correctamente');
-      console.log("Medicamento agregado con ID: ", docRef.id);
-
-    } catch (error) {
-      console.error("Error agregando el medicamento: ", error);
-      alert('Error al registrar el medicamento');
-    } finally {
-      setLoading(false);
-    }
+    
   };  
   async function uploadImage(uri) {
     const response = await fetch(uri);
@@ -203,9 +231,9 @@ export function RegistroMedicamento(){
     setNombreGenerico(text);
   };
   
-  const validateIntervalo = (text)=> {
-    const regex = /^[0-9]$/;
-    if(!regex.test(text)){
+  const validateIntervalo = ()=> {
+    
+    if(Intervalo==null){
       setErrorIntervalo('Seleccione un intérvalo.');
     }else{
       setErrorIntervalo('');
@@ -334,7 +362,7 @@ export function RegistroMedicamento(){
 
   
     return (
-<Box bg="#28B6F6" flex={1} p={4} position="relative">
+<Box bg="#027AA7" flex={1} p={4} position="relative">
   <View style={styles.topSemiCirclep}></View>
   <View style={styles.middleRigthSemiCircle}></View>
   <View style={styles.middleLeftSemiCircle}></View>
@@ -345,18 +373,19 @@ export function RegistroMedicamento(){
   </View>
   <ScrollView  contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         
-        <StatusBar style='default'></StatusBar>
+        <StatusBar style='default'/>
         <VStack space={4}>  
         <View style={styles.form}>
         <Text style={styles.Titulo}>Registro de Medicamento</Text>
           <View alignItems={"center"}>
-            <Text style={styles.textForm}>Imagen del Medicamento:</Text>
+            <Text style={styles.textForm}>Foto del Medicamento:</Text>
             <CustomImagePicker
               selectedImage={selectedImageMed}
               setSelectedImage={setSelectedImageMed}
               errorImage={errorImageMed}
               setErrorImage={setErrorImageMed}
             />
+            <Text style={styles.textForm}>Foto de la caja</Text>
             <CustomImagePicker
               selectedImage={selectedImageBox}
               setSelectedImage={setSelectedImageBox}
@@ -531,13 +560,27 @@ export function RegistroMedicamento(){
                   </FormControl>
                 </VStack>
               </Modal.Body>
+              <FormControl ml={10} pb={5}>
+              <FormControl.Label>Días de la semana:</FormControl.Label>
+                <ScrollView>
+                  {daysOfWeek.map((day) => (
+                    <Checkbox
+                      key={day.value}
+                      isChecked={selectedDays.includes(day.value)} // Verificar si el día está seleccionado
+                      onChange={() => handleCheckboxChange(day.value)} // Manejar el cambio manualmente
+                      onPress
+                    >
+                      {day.label}
+                    </Checkbox>
+                  ))}
+                </ScrollView>
+              </FormControl>
               <Modal.Footer>
                 <Button.Group space={2}>
                   <Button variant="ghost" onPress={() => setModalConfig(false)}>
                     Cancelar
                   </Button>
-                  <Button onPress={()=>{setModalConfig(false)
-                  }}>
+                  <Button onPress={aceptarFunc}>
                     Aceptar
                   </Button>
                 </Button.Group>
