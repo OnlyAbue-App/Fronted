@@ -3,20 +3,16 @@ import * as Notifications from 'expo-notifications';
 import { firestore } from '../../services/firebaseConfig';
 
 export async function primerRecordatorio(medicamentoData) {
-  const { usuarioId, medicamentoId, intervalo, horaInicial } = medicamentoData;
+  const { usuarioId, medicamentoId, intervalo, horaInicial, cantidad  } = medicamentoData;
 
   const primeraNotificacion = new Date(horaInicial);
-  const proximaNotificacion = new Date(primeraNotificacion);
-  proximaNotificacion.setHours(proximaNotificacion.getHours() + intervalo);
+
+  //Intervalo en minutos
+  // const trigger = new Date(primeraNotificacion.getTime() + intervalo * 60 * 1000);
+  //Intervalo en horas
+  //const trigger = new Date(primeraNotificacion.getTime() + intervalo * 60 * 60 * 1000);
 
   const recordatorioId = `${medicamentoId}_${new Date().getTime()}`;
-  // const recordatorioId = `${new Date().getTime()}`;
-  const usuarioPruebaRef = doc(collection(firestore, 'usuarios'), 'usuario1234');
-  // const recordatorioRef = doc(collection(
-  //   firestore,
-  //   `usuarios/${usuarioId}/medicamentos/${medicamentoId}/recordatorios`,
-  //   recordatorioId)
-  // );
   const recordatorioRef = doc(
     collection(
       firestore,
@@ -26,19 +22,24 @@ export async function primerRecordatorio(medicamentoData) {
   );
 
   await setDoc(recordatorioRef, {
-    proximaToma: proximaNotificacion.toISOString(),
+    proximaToma: horaInicial,
     estado: 'pendiente',
     retrasadoVeces: 0,
   });
-
+  // await Notifications.cancelAllScheduledNotificationsAsync();
   await Notifications.scheduleNotificationAsync({
     content: {
       title: "¡Es hora de tomar tu medicamento!",
       body: "Es momento de tomar tu dosis. ¿Lo has tomado?",
-      data: { medicamentoId, usuarioId },
+      data: { medicamentoId, usuarioId }
     },
-    // trigger: { date: proximaNotificacion },
-    trigger: { seconds: 10 }
-
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+      seconds: intervalo * 60 * 60,
+      repeats: true
+    },
+    
   });
+  
+
 }

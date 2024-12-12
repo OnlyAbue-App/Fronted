@@ -2,7 +2,6 @@ import React from "react";
 import { Alert, Dimensions, Text, StatusBar, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { useState,useCallback,useEffect } from 'react';
 import { Input, VStack, Select, Pressable, Modal, Button, FormControl, View,Box,Checkbox } from "native-base";
-import { useFocusEffect } from '@react-navigation/native';
 import { Link, useRouter } from "expo-router";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -15,8 +14,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { getNameFromAsyncStorage } from "../services/frontServices";
 import CustomImagePicker from './ImagePicker';
 import { primerRecordatorio } from "./recordatorios/notificacionesService";
-
-
+// import { scheduleAlarm } from "'../components/recordatorios/scheduleAlarm";
 
 const { width, height } = Dimensions.get('window');
 export function RegistroMedicamento(){
@@ -36,7 +34,6 @@ export function RegistroMedicamento(){
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState('W2H5OUAzK5maXu5jcww5');
   const [selectedDays, setSelectedDays] = useState([]); 
-
   const daysOfWeek = [
     { label: 'Lunes', value: 'Lunes' },
     { label: 'Martes', value: 'Martes' },
@@ -72,31 +69,32 @@ useEffect(() => {
   fetchUser();
 }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      setNombreComercial('');
-      setNombreGenerico('');
-      setDosis('');
-      setIntervalo('');      
-      setTamanio('');
-      setUnidad('');
-      setPresentacion('');
-      setSelectedImageMed(null);
-      setSelectedImageBox(null);
-      setCantidad('');
-      setSelectedColor('');
-      setSelectedTime('');
-// Setear errores            
-      setErrorNombreComercial('');
-      setErrorNombreGenerico('');
-      setErrorDosis('');
-      setErrorIntervalo('');    
-      setTamanio('');
-      setErrorImageMed('');
-      setErrorImageBox('');
-      setCantidad('');     
-    }, [])
-  );
+useEffect(() => {
+  // setNombreComercial('');
+  // setNombreGenerico('');
+  // setDosis('');
+  // setIntervalo('');
+  // setTamanio('');
+  // setUnidad('');
+  // setPresentacion('');
+  // setSelectedImageMed(null);
+  // setSelectedImageBox(null);
+  // setCantidad('');
+  // setSelectedColor('');
+  // setSelectedTime('');
+  
+  // Reset errors
+  setErrorNombreComercial('');
+  setErrorNombreGenerico('');
+  setErrorDosis('');
+  setErrorIntervalo('');
+  setErrorTamanio('');
+  setErrorImageMed('');
+  setErrorImageBox('');
+  setCantidad('');
+
+}, []);
+
 
   const handleSubmit = async () => {
     if (
@@ -119,15 +117,15 @@ useEffect(() => {
     ) {
       
       try {
-        if (errorImageMed && errorImageBox && !selectedImageMed && !selectedImageBox) {
-          alert('Debe seleccionar una imagen');
-          return;
-        }
+        // if (errorImageMed && errorImageBox && !selectedImageMed && !selectedImageBox) {
+        //   alert('Debe seleccionar una imagen');
+        //   return;
+        // }
         setLoading(true);
-        const usuarioPruebaRef = doc(collection(firestore, 'usuarios'), user);
+        const usuario = doc(collection(firestore, 'usuarios'), user);
         const imageMedUrl = await uploadImage(selectedImageMed);
         const imageBoxUrl = await uploadImage(selectedImageBox);
-        const docRef = await addDoc(collection(usuarioPruebaRef, 'medicamentos'), {
+        const docRef = await addDoc(collection(usuario, 'medicamentos'), {
           imagenMedUrl: imageMedUrl,
           imagenBoxUrl: imageBoxUrl,
           nombreComercial: NombreComercial,
@@ -145,14 +143,26 @@ useEffect(() => {
         });
         const recordatorioData = {
           medicamentoId: docRef.id,
-          usuarioId: usuarioPruebaRef.id,
+          usuarioId: user,
           intervalo: Intervalo,
           horaInicial: selectedTime,
           dias: selectedDays,
+          cantidad: Cantidad,
         };
         if (selectedTime != '') {
           await primerRecordatorio(recordatorioData);
         }
+        // await scheduleAlarm({
+        //   medicamentoId: 'test123',
+        //   usuarioId: 'testUser',
+        //   intervalo: 4,
+        //   horaInicial: new Date(Date.now() + 60 * 1000),
+        //   dias: ['Lunes', 'Martes'],
+        //   nombreComercial: 'Paracetamol',
+        // })
+        // .then(() => console.log('Alarm scheduled successfully'))
+        // .catch((error) => console.error('Error scheduling alarm:', error));
+        
     
         alert('Medicamento registrado correctamente');
         console.log("Medicamento agregado con ID: ", docRef.id);
@@ -208,7 +218,7 @@ useEffect(() => {
   const [errorImageBox, setErrorImageBox]=useState('');
   const [errorCantidad,setErrorCantidad]=useState('');
   const [ModalConfig, setModalConfig] = useState(false);
-  const [selectedTime, setSelectedTime] = useState(null);
+  const [selectedTime, setSelectedTime] = useState('');
   const [showTimePicker, setShowTimePicker] = useState(false);
   
   //validaciones
@@ -357,9 +367,6 @@ useEffect(() => {
           </View>      
     );}
   }
-  
-  
-
   
     return (
 <Box bg="#027AA7" flex={1} p={4} position="relative">
@@ -587,7 +594,6 @@ useEffect(() => {
               </Modal.Footer>
             </Modal.Content>
           </Modal>
-         
           <View alignItems={"center"}>
             <View style={styles.loading}>
               {loading ? (
@@ -601,7 +607,6 @@ useEffect(() => {
                 </TouchableOpacity>
               )}
             </View>
-            
           </View>   
         </View>
       </VStack>
@@ -611,4 +616,6 @@ useEffect(() => {
 
     
 );}
+
+
  
