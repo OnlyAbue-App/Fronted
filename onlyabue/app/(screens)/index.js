@@ -15,6 +15,9 @@ import * as AuthSession from 'expo-auth-session';
 import CryptoJS from 'crypto-js'
 import { saveToken,saveName } from '../../store/slices/userSlice';
 import { obtenerDocumentoPorToken } from '../../services/firestoreService';
+import * as Notifications from 'expo-notifications';
+import { useNavigation } from '@react-navigation/native';
+import initializeCollections from '../../services/initFirestore';
 
 
 WebBrowser.maybeCompleteAuthSession();
@@ -24,6 +27,7 @@ export default function Index() {
   const dispatch = useDispatch();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  
   const [request, response, promptAsync] = Google.useAuthRequest({
     androidClientId: "119258832773-57b097ei5nemlrrbc29mtq0l1mv8e5nu.apps.googleusercontent.com",
     redirectUri: AuthSession.makeRedirectUri({
@@ -95,6 +99,56 @@ export default function Index() {
       setIsLoading(false);
     }
   };
+  useEffect(() => {
+    const init = async () => {
+      try {
+        await initializeCollections();
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    init();
+  }, []);
+  useEffect(() => {
+    const requestPermissions = async () => {
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permisos requeridos', 'Se necesitan permisos para enviar notificaciones.');
+      }
+    };
+    requestPermissions();
+  }, []);
+  //const navigation = useNavigation();
+
+  // useEffect(() => {
+  //   const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+  //     console.log('Notification Response:', response);
+
+  //     const { medicamentoId, usuarioId } = response.notification.request.content.data;
+
+  //     // Navigate to the DetalleRecordatorio screen with the provided data
+  //     navigation.navigate('DetalleRecordatorio', { medicamentoId, usuarioId });
+  //   });
+
+  //   return () => subscription.remove();
+  // }, []);
+  useEffect(() => {
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+      }),
+    });
+
+    const foregroundSubscription = Notifications.addNotificationReceivedListener(notification => {
+      console.log('Notification received in foreground:', notification);
+    });
+
+    return () => foregroundSubscription.remove();
+  }, []);
+  
   
   if (isLoading) {
     return <LoadingScreen />;

@@ -6,7 +6,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import styles from "../Styles/GlobalStyles";
-import { getNameFromAsyncStorage } from "../services/frontServices";import { crearCitaMedica } from '../services/firestoreService';
+import { getNameFromAsyncStorage } from "../services/frontServices";
 import { firestore, storage } from '../services/firebaseConfig';
 import { collection, addDoc, doc } from 'firebase/firestore';
 import { crearCitaMedica } from '../services/firestoreService';
@@ -29,7 +29,8 @@ export function RegistroCitaMedica(){
 
 useEffect(() => {
   const fetchUser = async () => {
-    const fetchedUser = await getNameFromAsyncStorage();
+    // const fetchedUser = await getNameFromAsyncStorage();
+    const fetchedUser = 'W2H5OUAzK5maXu5jcww5';
     setUser(fetchedUser);
   };
   fetchUser();
@@ -53,7 +54,7 @@ useEffect(() => {
           // Recordatorio
       ) {
         // console.log( 'nombre:'+ NombreMedico +'apellido:'+ ApellidoMedico + 'lugar:'+Lugar+ 'descrip:'+DescipcionCita+'recordatorio:'+Recordatorio +'hora:'+selectedTime.toLocaleTimeString() +'fecha:'+selectedDate )
-        const usuarioPruebaRef = "usuario1234";
+        // const usuarioPruebaRef = "usuario1234";
         const cita = {
           nombreMedico: NombreMedico,
           apellidoMedico: ApellidoMedico,
@@ -67,7 +68,7 @@ useEffect(() => {
         };
         console.log("Datos de la cita médica:", cita);
         try {
-          await crearCitaMedica(usuarioPruebaRef, cita);
+          await crearCitaMedica(user, cita);
           Alert.alert('Éxito', 'Cita médica creada exitosamente.');
           setNombreMedico('');
           setApellidoMedico('');
@@ -181,7 +182,7 @@ const [errorDetalle, setErrorDetalle]=useState('')
                         <Text style={styles.textForm}>Ingrese Nombre del Medico: *</Text>
                         <Input size={"lg"} variant={"outline"} backgroundColor={'white'} fontSize={14}
                             borderRadius={7}
-                            marginTop={1}
+                            marginBottom={3}
                             value={NombreMedico}
                             onChangeText={ValidateNombreMed}
                         ></Input>
@@ -191,7 +192,7 @@ const [errorDetalle, setErrorDetalle]=useState('')
                         <Input
                               size={"lg"} variant={"outline"} backgroundColor={'white'} fontSize={14}
                               borderRadius={7}
-                              marginTop={1}
+                              marginBottom={3}
                               value={ApellidoMedico}
                               onChangeText={ValidateApellidoMed}
                         ></Input>
@@ -200,7 +201,7 @@ const [errorDetalle, setErrorDetalle]=useState('')
                         <Text style={styles.textForm}>Detalle:*</Text>
                          <Input size={"lg"} variant={"outline"} backgroundColor={'white'} fontSize={14}
                             borderRadius={7}
-                            marginTop={1}
+                            marginBottom={3}
                             value={Detalle}
                             onChangeText={(text)=>{setDetalle(text);
                               if(Detalle!=''){
@@ -212,7 +213,7 @@ const [errorDetalle, setErrorDetalle]=useState('')
                          <Text style={styles.textForm}>Descripcion:</Text>
                          <Input size={"lg"} variant={"outline"} backgroundColor={'white'} fontSize={14}
                             borderRadius={7}
-                            marginTop={1}
+                            marginBottom={3}
                             value={DescipcionCita}
                             onChangeText={(text)=>setDescripcionCita(text)}
                          ></Input>
@@ -220,7 +221,7 @@ const [errorDetalle, setErrorDetalle]=useState('')
                          <Text style={styles.textForm}>Lugar: *</Text>
                          <Input size={"lg"} variant={"outline"} backgroundColor={'white'} fontSize={14}
                             borderRadius={7}
-                            marginTop={1}
+                            marginBottom={3}
                             value={Lugar}
                             onChangeText={ValidateLugar}
                          ></Input>
@@ -230,8 +231,7 @@ const [errorDetalle, setErrorDetalle]=useState('')
                           <Button 
                            onPress={()=>setShowTimePicker(true)}
                            flexDirection= "row"  
-                            marginBottom={3}
-                            marginTop={3}                            
+                            marginBottom={3}                            
                             variant="outline" backgroundColor="white"
                             endIcon={<MaterialIcons marginTop={3} name="arrow-forward-ios" size={14} color='Black' />}
                             >
@@ -251,10 +251,13 @@ const [errorDetalle, setErrorDetalle]=useState('')
 {/* Antelacion Recordatorio  */}
                         <Text style={styles.textForm}>Recordatorio:*</Text>
                         <Select
-                        size={"lg"} variant={"outline"} backgroundColor={'white'} fontSize={14}
-                        borderRadius={7}
-                        marginTop={1} selectedValue={Recordatorio} minWidth="200"  placeholder="Seleccione cantidad de Medicamento"
-                        onValueChange={(itemValue) => {setRecordatorio(itemValue);
+                          size={"lg"} variant={"outline"} backgroundColor={'white'} fontSize={14}
+                          borderRadius={7}
+                          marginBottom={3}
+                          selectedValue={Recordatorio} 
+                          minWidth="200"  
+                          placeholder="Seleccione cantidad de Medicamento"
+                          onValueChange={(itemValue) => {setRecordatorio(itemValue);
                           if(Recordatorio!=''){
                             setErrorRecordatorio('')
                           }
@@ -280,8 +283,7 @@ const [errorDetalle, setErrorDetalle]=useState('')
                         <Button
                           onPress={()=>setShowDatePicker(true)}
                             flexDirection="row"
-                            marginBottom={3}
-                            marginTop={3}                            
+                            marginBottom={3}                            
                             variant="outline" backgroundColor="white"
                             endIcon={<MaterialIcons marginTop={3} name="arrow-forward-ios" size={14} color='Black' />}
                             >
