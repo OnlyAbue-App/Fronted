@@ -34,12 +34,40 @@ export async function primerRecordatorio(medicamentoData) {
       data: { medicamentoId, usuarioId }
     },
     trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-      seconds: intervalo * 60 * 60,
-      repeats: true
-    },
+      type: Notifications.SchedulableTriggerInputTypes.DATE,
+      date: primeraNotificacion,
+      // type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+      // seconds: intervalo * 60 * 60,
+      // repeats: true
+    }
     
   });
+  console.log("First notification scheduled for:", primeraNotificacion);
+  let nextNotificationTime = new Date(primeraNotificacion);
+  for (let i = 1; i < cantidad; i++) {
+    nextNotificationTime = new Date(nextNotificationTime.getTime() + intervalo * 60 * 1000); // Add interval in milliseconds
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "¡Es hora de tomar tu medicamento!",
+        body: "Es momento de tomar tu dosis. ¿Lo has tomado?",
+        data: { medicamentoId, usuarioId },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: nextNotificationTime,
+      },
+    });
+
+    console.log(`Notification ${i + 1} scheduled for:`, nextNotificationTime);
+    await setDoc(recordatorioRef, {
+      proximaToma: nextNotificationTime,
+      estado: 'pendiente',
+      retrasadoVeces: 0,
+    });
+  }
+
+  console.log("All notifications scheduled based on the interval:", intervalo, "hours");
   
 
 }
